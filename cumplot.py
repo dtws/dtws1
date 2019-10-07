@@ -1,3 +1,9 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+
+
 def percent_in_rows(df):
     sums = df.apply(sum, axis=1)
     df2 = df.copy()
