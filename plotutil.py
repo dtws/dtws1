@@ -34,3 +34,8 @@ def cumplot(df, x, y, category, horizontal=False, percent=False, **kwargs):
     for i in range(len(df2.columns)):
         ps[i] = do_plot(df2.index, df2.iloc[:,i], cum2.iloc[:,i], horizontal)
     plt.legend(map(lambda p: p[0], ps), df2.columns, **kwargs) 
+
+def abline(a, b, axes):
+    x_vals = np.array(axes.get_xlim())
+    y_vals = a * x_vals + b
+    axes.plot(x_vals, y_vals, '-')
