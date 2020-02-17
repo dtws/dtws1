@@ -1,1 +1,1 @@
-from dsutils.cumplot import cumplot
+from dsutils.plotutil import cumplot
