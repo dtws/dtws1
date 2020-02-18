@@ -22,8 +22,8 @@ def _swap(ls):
 def extent(df, id_col):
     ids = df[id_col].unique()
     latlngs = _flatten(map(h3.h3_to_geo_boundary, ids))
-    lats = map(lambda x: x[0], latlngs)
-    lngs = map(lambda x: x[1], latlngs)
+    lats = [x[0] for x in latlngs]
+    lngs = [x[1] for x in latlngs]
     extent = tmb.Extent.from_lonlat(
         min(lngs), max(lngs),
         min(lats), max(lats)
@@ -46,8 +46,8 @@ def color_selector(df, val_col, n, hue=0.9):
     tick = width / n
 
     def selector(v):
-        q = min(v - m // tick, n - 1)
-        return cols[q]
+        pos = min(int((v - m)//tick), n - 1)
+        return cols[int(pos)]
 
     return selector
 
@@ -61,12 +61,14 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     plotter = tmb.Plotter(extent, t, width=width)
     plotter.plot(ax, t)
 
-    n = length(draw)
+    n = len(df)
     for i in range(n):
-        id = df[id_col][i]
-        val = df[val_col][i]
+        id = df[id_col].iloc[i]
+        val = df[val_col].iloc[i]
         color = color_selector(val)
         vts = _swap(h3.h3_to_geo_boundary(id))
-        xys = map(lambda x: tmb.project(*x), vtx)
+        xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color)
         ax.add_patch(poly)
+
+    return fig, ax
