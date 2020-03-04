@@ -1,4 +1,4 @@
-import subprocess
+import subprocess as sp
 
 
 def make_gif(files, output):
@@ -13,4 +13,5 @@ def make_gif(files, output):
     ] + list(files) + [
         output
     ]
-    subprocess.call(cmd)
+    r = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+    return r.stdout.decode("utf-8"), r.stderr.decode("utf-8")
