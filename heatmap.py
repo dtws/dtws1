@@ -124,7 +124,7 @@ def color_selector_p(values, n, hue=0.9):
     return selector
 
 
-def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600):
+def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8):
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
@@ -140,7 +140,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         color = color_selector(val)
         vts = _swap(h3.h3_to_geo_boundary(id))
         xys = [tmb.project(*x) for x in vts]
-        poly = plt.Polygon(xys, fc=color)
+        poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
 
     return fig, ax
