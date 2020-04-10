@@ -101,72 +101,51 @@ def n_extent(ids, n):
     return Return(extents, positions)
 
 
-def color_selector(values, n, hue=0.9, max_value=None, desc=False):
-    cols = [
-        convert_color(
-            HSVColor(hue, i/(n-1), 1),
-            sRGBColor
-        ).get_rgb_hex()
-        for i in range(n)
-    ]
-    m, M = min(values), max(values)
-    if max_value is not None:
-        M = min(M, max_value)
-    width = M - m
-    tick = width / n
+class ColorSelectorBase:
+    @staticmethod
+    def _make_cols(n, hue):
+        return [
+            convert_color(
+                HSVColor(hue, i/(n-1), 1),
+                sRGBColor
+            ).get_rgb_hex()
+            for i in range(n)
+        ]
 
-    def selector(v):
-        v = max(m, v)
-        if max_value is not None:
-            v = min(v, max_value)
-        pos = min(int((v - m)//tick), n - 1)
+    def __call__(self, v):
+        pos = 0
+        while pos < self._n_tick and self._tick[pos] <= v:
+            pos += 1
+        return self._cols[pos]
+
+
+class color_selector(ColorSelectorBase):
+    def __init__(self, values, n, hue=0.9, min_value=-np.Inf, max_value=np.Inf, desc=False):
+        self._n_cols = n
+        self._n_tick = n - 1
+        self._cols = ColorSelectorBase._make_cols(n, hue)
         if desc:
-            pos = n - 1 - pos
-        return cols[pos]
-
-    return selector
-
-
-def color_selector_tick(ticks, hue=0.9):
-    n_tick = len(ticks)
-    n_cols = n_tick + 1
-
-    cols = [
-        convert_color(
-            HSVColor(hue, i/(n_cols-1), 1),
-            sRGBColor
-        ).get_rgb_hex()
-        for i in range(n_cols)
-    ]
-
-    def selector(v):
-        ret = 0
-        while ret < n_tick and ticks[ret] < v:
-            ret += 1
-        return cols[ret]
-    return selector
+            self._cols = list(reversed(self._cols))
+        m = max(min_value, min(values))
+        M = min(max_value, max(values))
+        self._tick = np.linspace(m, M, n_cols+1)[1:-1]
 
 
-def color_selector_p(values, n, hue=0.9):
-    n_tick = n - 1
-    n_cols = n
+class color_selector_tick(ColorSelectorBase):
+    def __init__(self, ticks, hue=0.9):
+        self._n_cols = len(ticks) + 1
+        self._n_tick = len(ticks)
+        self._cols = ColorSelectorBase._make_cols(self._n_cols, hue)
+        self._tick = ticks
 
-    cols = [
-        convert_color(
-            HSVColor(hue, i/(n_cols-1), 1),
-            sRGBColor
-        ).get_rgb_hex()
-        for i in range(n_cols)
-    ]
-    ps = np.linspace(0, 100, n_cols+1)[1:-1]
-    ticks = np.percentile(values, ps)
 
-    def selector(v):
-        ret = 0
-        while ret < n_tick and ticks[ret] < v:
-            ret += 1
-        return cols[ret]
-    return selector
+class color_selector_p(ColorSelectorBase):
+    def __init__(self, values, n, hue=0.9):
+        self._n_tick = n - 1
+        self._n_cols = n
+        self._cols = ColorSelectorBase._make_cols(self._n_cols, hue)
+        ps = np.linspace(0, 100, self._n_cols+1)[1:-1]
+        self._tick = np.percentile(values, ps)
 
 
 def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False):
