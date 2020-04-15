@@ -1,7 +1,6 @@
 import itertools as it
 import matplotlib.pyplot as plt
 from h3 import h3
-import pandas as pd
 import numpy as np
 import functools as ft
 import tilemapbase as tmb
