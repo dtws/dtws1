@@ -37,8 +37,8 @@ def draw(df, size=0,
     elif not len(size) == n:
         raise RuntimeError(f"size is invalid: {size}")
 
-    lats = df.loc[:, latitude]
-    lngs = df.loc[:, longitude]
+    lats = df.loc[:, latitude].values
+    lngs = df.loc[:, longitude].values
 
     extent = tmb.Extent.from_lonlat(
         min(lngs), max(lngs),
