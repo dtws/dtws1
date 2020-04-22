@@ -35,10 +35,12 @@ class color_selector(ColorSelectorBase):
 
 
 class color_selector_tick(ColorSelectorBase):
-    def __init__(self, ticks, hue=0.9):
+    def __init__(self, ticks, hue=0.9, reverse=False):
         self._n_cols = len(ticks) + 1
         self._n_tick = len(ticks)
         self._cols = ColorSelectorBase._make_cols(self._n_cols, hue)
+        if reverse:
+            self._cols = list(reversed(self._cols))
         self._tick = ticks
 
 

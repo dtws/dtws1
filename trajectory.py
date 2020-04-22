@@ -6,6 +6,10 @@ import folium
 from .maputil import copyright_osm
 import numpy as np
 from .colorutil import color_selector_tick
+from datetime import datetime, timedelta
+from geopy.distance import distance
+
+tmb.init(create=True)
 
 
 def _extend(m, M, p):
@@ -130,7 +134,7 @@ def draw(df, size=0,
     return fig, ax
 
 
-def draw_folium(df, size=0,
+def draw_folium(df,
                 latitude=None, longitude=None,
                 timestamp="timestamp",
                 accuracy="accuracy"):
@@ -156,19 +160,8 @@ def draw_folium(df, size=0,
         longitude = df.columns[pos]
 
     n = len(df)
-    if type(size) is str:
-        ss = df.loc[:, size].values
-    elif type(size) is int or type(size) is float:
-        ss = [size] * n
-    elif type(size) is pd.Series:
-        ss = size.values
-    elif len(size) == n:
-        ss = size
-    else:
-        raise RuntimeError(f"size is invalid: {size}")
-
-    ts = df.loc[:, timestamp]
-    accs = df.loc[:, accuracy]
+    ts = df.loc[:, timestamp].values
+    accs = df.loc[:, accuracy].values
 
     lats = df.loc[:, latitude].values
     lngs = df.loc[:, longitude].values
@@ -181,20 +174,66 @@ def draw_folium(df, size=0,
         width=800, height=800
     )
 
-    cs = color_selector_tick(np.array([5, 10, 20]) * 60)
+    cs = color_selector_tick(np.array([5, 10, 20]) * 60, reverse=True)
 
-    for i in range(n-1):
-        x, y = lngs[i], lats[i]
-        nx, ny = lngs[i+1], lats[i+1]
-        t, nt = ts[i], ts[i+1]
-        col = cs(nt-t)
-        folium.PolyLine(locations=[(y, x), (ny, nx)], color=col).add_to(fmap)
     for i in range(n):
         x, y = lngs[i], lats[i]
         t = ts[i]
         acc = accs[i]
-        popup = f"({y},{x})\n{t}\n{acc}"
-        folium.Circle((y, x), popup=popup,
-                      radius=acc).add_to(fmap)
+        dt = datetime.utcfromtimestamp(t) + timedelta(hours=9)
+        popup = f"{dt}\nacc.={acc}"
+        r1 = 10
+        r2 = acc / 20
+        if r1 > r2:
+            folium.Circle(
+                (y, x),
+                color="black",
+                fill=True,
+                popup=popup,
+                radius=r1,
+                weight=0
+            ).add_to(fmap)
+            folium.Circle(
+                (y, x),
+                alpha=0.5,
+                color="blue",
+                fill=True,
+                popup=f"acc.={acc}",
+                radius=r2,
+                weight=0
+            ).add_to(fmap)
+        else:
+            folium.Circle(
+                (y, x),
+                alpha=0.5,
+                color="blue",
+                fill=True,
+                popup=f"acc.={acc}",
+                radius=r2,
+                weight=0
+            ).add_to(fmap)
+            folium.Circle(
+                (y, x),
+                color="black",
+                fill=True,
+                popup=popup,
+                radius=r1,
+                weight=0
+            ).add_to(fmap)
+    for i in range(n-1):
+        x, y = lngs[i], lats[i]
+        nx, ny = lngs[i+1], lats[i+1]
+        t, nt = ts[i], ts[i+1]
+        dt = datetime.utcfromtimestamp(t) + timedelta(hours=9)
+        ndt = datetime.utcfromtimestamp(nt) + timedelta(hours=9)
+        col = cs(nt-t)
+        ds = distance((y, x), (ny, nx)).m
+        folium.PolyLine(
+            locations=[(y, x), (ny, nx)],
+            color=col,
+            popup=f"dist.={int(ds)}m\nvelo.={int(ds/(nt-t))}m/s\ntime={nt-t}s\n"
+            + f"{dt.strftime('%H:%M:%S')} - {ndt.strftime('%H:%M:%S')}"
+            if nt != t else f"dist.={ds}"
+        ).add_to(fmap)
 
     return fmap
