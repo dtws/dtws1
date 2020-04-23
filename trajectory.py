@@ -61,13 +61,13 @@ def _adjust(ex, w, h):
     return tmb.Extent(xmin, xmax, ymin, ymax)
 
 
-def draw(df, size=0,
-         figsize=(8, 8),
-         dpi=100,
-         axis_visible=False,
-         padding=0.03,
-         adjust=True,
-         latitude=None, longitude=None):
+def draw_png(df, size=0,
+             figsize=(8, 8),
+             dpi=100,
+             axis_visible=False,
+             padding=0.03,
+             adjust=True,
+             latitude=None, longitude=None):
     clns = [x.lower() for x in df.columns]
 
     if latitude is None:
