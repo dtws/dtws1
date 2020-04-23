@@ -1,13 +1,11 @@
 import tilemapbase as tmb
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
-import pandas as pd
 import folium
 from .maputil import copyright_osm
 import numpy as np
-from .colorutil import color_selector_tick
-from datetime import datetime, timedelta
 from geopy.distance import distance
+import re
 
 tmb.init(create=True)
 
@@ -61,49 +59,102 @@ def _adjust(ex, w, h):
     return tmb.Extent(xmin, xmax, ymin, ymax)
 
 
-def draw_png(df, size=0,
-             figsize=(8, 8),
-             dpi=100,
-             axis_visible=False,
-             padding=0.03,
-             adjust=True,
-             latitude=None, longitude=None):
+def _get_column(df, candidates):
     clns = [x.lower() for x in df.columns]
+    candidates = [c.lower() for c in candidates]
+    pos = -1
+    for c in candidates:
+        if c in clns:
+            pos = clns.index(c)
+            break
+    if pos == -1:
+        raise RuntimeError(f"{candidates} is not found in {clns}")
+    return df.iloc[:, pos]
 
-    if latitude is None:
-        if "latitude" in clns:
-            pos = clns.index("latitude")
-        elif "lat" in clns:
-            pos = clns.index("lat")
-        else:
-            raise RuntimeError("latitude is not designated")
-        latitude = df.columns[pos]
-    if longitude is None:
-        if "longitude" in clns:
-            pos = clns.index("longitude")
-        elif "lon" in clns:
-            pos = clns.index("lon")
-        elif "lng" in clns:
-            pos = clns.index("lng")
-        else:
-            raise RuntimeError("longitude is not designated")
-        longitude = df.columns[pos]
 
-    n = len(df)
-    if type(size) is str:
-        ss = df.loc[:, size].values
-    elif type(size) is int or type(size) is float:
-        ss = [size] * n
-    elif type(size) is pd.Series:
-        ss = size.values
-    elif len(size) == n:
-        ss = size
+def _iterable(x):
+    try:
+        iter(x)
+    except TypeError:
+        return False
+    return True
+
+
+def draw(df,
+         latitude=None, longitude=None,
+         p_size=1, p_color="#000000", p_popup=None,
+         l_size=1, l_color="#000000", l_popup=None,
+         output_format="png",
+         **kwargs):
+    lats = _get_column(df, ["latitude", "lat"]
+                       ) if latitude is None else df.loc[:, latitude]
+    lngs = _get_column(df, ["longitude", "lon", "lng"]
+                       ) if longitude is None else df.loc[:, longitude]
+
+    if type(p_size) is str:
+        ps = _get_column(df, [p_size])
+    elif type(p_size) is float or type(p_size) is int:
+        ps = [p_size] * len(df)
+    elif type(p_size) is list:
+        ps = p_size
     else:
-        raise RuntimeError(f"size is invalid: {size}")
+        raise ValueError(f"{p_size} is given for p_size")
 
-    lats = df.loc[:, latitude].values
-    lngs = df.loc[:, longitude].values
+    if type(p_color) is str and re.match(r"^#[0-9a-fA-F]{6}$", p_color):
+        pc = [p_color] * len(df)
+    elif type(p_color) is str:
+        pc = _get_column(df, [p_color])
+    elif type(p_color) is list:
+        pc = p_color
+    else:
+        raise ValueError(f"{p_color} is given for p_color")
 
+    if type(l_size) is str:
+        ls = _get_column(df, [l_size])
+    elif type(l_size) is float or type(l_size) is int:
+        ls = [l_size] * (len(df) - 1)
+    elif type(l_size) is list:
+        ls = l_size
+    else:
+        raise ValueError(f"{l_size} is given for l_size")
+
+    if type(l_color) is str and re.match(r"^#[0-9a-fA-F]{6}$", l_color):
+        lc = [l_color] * (len(df) - 1)
+    elif type(l_color) is str:
+        lc = _get_column(df, [l_color])
+    elif type(l_color) is list:
+        lc = l_color
+    else:
+        raise ValueError(f"{l_color} is given for l_color")
+
+    if output_format == "png":
+        return _draw_png(
+            df,
+            lats, lngs,
+            ps, pc,
+            **kwargs
+        )
+    elif output_format == "html":
+        return _draw_html(
+            df,
+            lats, lngs,
+            ps, pc, p_popup,
+            ls, lc, l_popup,
+            ** kwargs
+        )
+    else:
+        raise ValueError(
+            f"'{output_format}' is not valid for output_format. It should be 'png' or 'html'")
+
+
+def _draw_png(df,
+              lats, lngs,
+              p_size, p_color,
+              l_size, l_color,
+              figsize=(8, 8), dpi=100,
+              axis_visible=False,
+              padding=0.03,
+              adjust=True):
     ex1 = tmb.Extent.from_lonlat(
         min(lngs), max(lngs),
         min(lats), max(lats)
@@ -125,115 +176,54 @@ def draw_png(df, size=0,
     ps = [tmb.project(x, y) for x, y in zip(lngs, lats)]
     xs = [p[0] for p in ps]
     ys = [p[1] for p in ps]
-    l2 = lines.Line2D(xs, ys)
+    l2 = lines.Line2D(xs, ys, linewidth=l_size, color=l_color)
     ax.add_line(l2)
+    n = len(df)
+    if type(p_size) is not list:
+        p_size = [p_size for i in range(n)]
+    if type(p_color) is not list:
+        p_color = [p_color for i in range(n)]
     for i in range(n):
         x, y = ps[i]
-        ax.plot(x, y, marker=".", markersize=ss[i], color="y")
+        ax.plot(x, y, marker=".", markersize=p_size[i], color=p_color[i])
 
     return fig, ax
 
 
-def draw_folium(df,
-                latitude=None, longitude=None,
-                timestamp="timestamp",
-                accuracy="accuracy"):
-    clns = [x.lower() for x in df.columns]
-
-    if latitude is None:
-        if "latitude" in clns:
-            pos = clns.index("latitude")
-        elif "lat" in clns:
-            pos = clns.index("lat")
-        else:
-            raise RuntimeError("latitude is not designated")
-        latitude = df.columns[pos]
-    if longitude is None:
-        if "longitude" in clns:
-            pos = clns.index("longitude")
-        elif "lon" in clns:
-            pos = clns.index("lon")
-        elif "lng" in clns:
-            pos = clns.index("lng")
-        else:
-            raise RuntimeError("longitude is not designated")
-        longitude = df.columns[pos]
-
+def _draw_html(df,
+               lats, lngs,
+               p_size, p_color, p_popup,
+               l_size, l_color, l_popup,
+               zoom_start=15, width=800, height=800):
     n = len(df)
-    ts = df.loc[:, timestamp].values
-    accs = df.loc[:, accuracy].values
-
-    lats = df.loc[:, latitude].values
-    lngs = df.loc[:, longitude].values
     mlat = np.mean(lats)
     mlng = np.mean(lngs)
-
     fmap = folium.Map(
         location=[mlat, mlng],
         attr=copyright_osm,
-        width=800, height=800
+        width=width, height=height,
+        zoom_start=zoom_start
     )
-
-    cs = color_selector_tick(np.array([5, 10, 20]) * 60, reverse=True)
 
     for i in range(n):
         x, y = lngs[i], lats[i]
-        t = ts[i]
-        acc = accs[i]
-        dt = datetime.utcfromtimestamp(t) + timedelta(hours=9)
-        popup = f"{dt}\nacc.={acc}"
-        r1 = 10
-        r2 = acc / 20
-        if r1 > r2:
-            folium.Circle(
-                (y, x),
-                color="black",
-                fill=True,
-                popup=popup,
-                radius=r1,
-                weight=0
-            ).add_to(fmap)
-            folium.Circle(
-                (y, x),
-                alpha=0.5,
-                color="blue",
-                fill=True,
-                popup=f"acc.={acc}",
-                radius=r2,
-                weight=0
-            ).add_to(fmap)
-        else:
-            folium.Circle(
-                (y, x),
-                alpha=0.5,
-                color="blue",
-                fill=True,
-                popup=f"acc.={acc}",
-                radius=r2,
-                weight=0
-            ).add_to(fmap)
-            folium.Circle(
-                (y, x),
-                color="black",
-                fill=True,
-                popup=popup,
-                radius=r1,
-                weight=0
-            ).add_to(fmap)
+        folium.Circle(
+            (y, x),
+            color=p_color[i],
+            fill=True,
+            popup=p_popup[i] if p_popup is not None else None,
+            radius=p_size[i],
+            weight=0
+        ).add_to(fmap)
     for i in range(n-1):
         x, y = lngs[i], lats[i]
         nx, ny = lngs[i+1], lats[i+1]
-        t, nt = ts[i], ts[i+1]
-        dt = datetime.utcfromtimestamp(t) + timedelta(hours=9)
-        ndt = datetime.utcfromtimestamp(nt) + timedelta(hours=9)
-        col = cs(nt-t)
-        ds = distance((y, x), (ny, nx)).m
+        col = l_color[i]
         folium.PolyLine(
             locations=[(y, x), (ny, nx)],
             color=col,
-            popup=f"dist.={int(ds)}m\nvelo.={int(ds/(nt-t))}m/s\ntime={nt-t}s\n"
-            + f"{dt.strftime('%H:%M:%S')} - {ndt.strftime('%H:%M:%S')}"
-            if nt != t else f"dist.={ds}"
+            weight=l_size[i],
+            popup=l_popup[i] if l_popup is not None else None
         ).add_to(fmap)
 
     return fmap
