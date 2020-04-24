@@ -61,7 +61,7 @@ def _adjust(ex, w, h):
 
 def _get_column(df, candidates):
     clns = [x.lower() for x in df.columns]
-    candidates = [c.lower() for c in candidates]
+    candidates = [c.lower() for c in candidates if c is not None]
     pos = -1
     for c in candidates:
         if c in clns:
@@ -86,10 +86,8 @@ def draw(df,
          l_size=1, l_color="#000000", l_popup=None,
          output_format="png",
          **kwargs):
-    lats = _get_column(df, ["latitude", "lat"]
-                       ) if latitude is None else df.loc[:, latitude]
-    lngs = _get_column(df, ["longitude", "lon", "lng"]
-                       ) if longitude is None else df.loc[:, longitude]
+    lats = _get_column(df, [latitude, "latitude", "lat"]).values
+    lngs = _get_column(df, [longitude, "longitude", "lon", "lng"]).values
 
     if type(p_size) is str:
         ps = _get_column(df, [p_size])
@@ -97,6 +95,8 @@ def draw(df,
         ps = [p_size] * len(df)
     elif type(p_size) is list:
         ps = p_size
+    elif _iterable(p_size):
+        ps = list(p_size)
     else:
         raise ValueError(f"{p_size} is given for p_size")
 
@@ -106,6 +106,8 @@ def draw(df,
         pc = _get_column(df, [p_color])
     elif type(p_color) is list:
         pc = p_color
+    elif _iterable(p_color):
+        pc = list(p_color)
     else:
         raise ValueError(f"{p_color} is given for p_color")
 
@@ -115,6 +117,8 @@ def draw(df,
         ls = [l_size] * (len(df) - 1)
     elif type(l_size) is list:
         ls = l_size
+    elif _iterable(l_size):
+        ls = list(l_size)
     else:
         raise ValueError(f"{l_size} is given for l_size")
 
@@ -124,6 +128,8 @@ def draw(df,
         lc = _get_column(df, [l_color])
     elif type(l_color) is list:
         lc = l_color
+    elif _iterable(l_color):
+        lc = list(l_color)
     else:
         raise ValueError(f"{l_color} is given for l_color")
 
@@ -132,6 +138,7 @@ def draw(df,
             df,
             lats, lngs,
             ps, pc,
+            ls, lc,
             **kwargs
         )
     elif output_format == "html":
@@ -176,13 +183,11 @@ def _draw_png(df,
     ps = [tmb.project(x, y) for x, y in zip(lngs, lats)]
     xs = [p[0] for p in ps]
     ys = [p[1] for p in ps]
-    l2 = lines.Line2D(xs, ys, linewidth=l_size, color=l_color)
-    ax.add_line(l2)
     n = len(df)
-    if type(p_size) is not list:
-        p_size = [p_size for i in range(n)]
-    if type(p_color) is not list:
-        p_color = [p_color for i in range(n)]
+    for i in range(n-1):
+        l2 = lines.Line2D(xs[i:(i+2)], ys[i:(i+2)],
+                          linewidth=l_size[i], color=l_color[i])
+        ax.add_line(l2)
     for i in range(n):
         x, y = ps[i]
         ax.plot(x, y, marker=".", markersize=p_size[i], color=p_color[i])
