@@ -98,7 +98,48 @@ def n_extent(ids, n):
     return Return(extents, positions)
 
 
-def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False):
+def draw(df,
+         id_col, val_col,
+         extent, color_selector,
+         figsize=(8, 8),
+         dpi=100, width=600,
+         alpha=0.8,
+         axis_visible=False):
+
+    """Heatmapの作成
+
+    matplotlibを用いてHeatmapを作成する
+
+    Args:
+        df (pandas.DataFrame): stay/moveをもとに作成したtable
+        id_col (str): idのcolumn名
+        val_col (str): valのcolumn名
+        extent (tilemapbase.mapping.Extent): 地図の表示サイズ
+        color_selector (dsutils.colorutil.color_selector_tick): Heatmapの色の指定
+        figsize (tuple, optional): Matplotlibのfigsize
+        dpi (, optional): 
+        width (, optional):
+        alpha (, optional):
+        axis_visible (, optional):
+
+    Returns:
+       matplotlib.figure.Figure: 作成したHeatmap
+       matplotlib.axes._subplots.AxesSubplot: Heatmapの軸、Heatmapの説明を追記したい場合に利用
+
+    Examples:
+        >>>from dsutils import heatmap as hm, gif, timeutil as tu, colorutil as cu
+        >>>import pandas as pd
+        >>>LatLng = namedtuple("LatLng", "lat lng")
+        >>>df = pd.read_csv("/data/heatmap.csv")
+        >>>cs = cu.color_selector_tick(np.arange(100, 900, 100))
+        >>>ex = hm.extent_corner(LatLng(lat=35.5, lng=139.5), LatLng(lat=35.6, lng=139.6))
+        >>>fig, ax = hm.draw(df, "hoge_id", "cnt_uuid", ex, cs)
+        >>>ax.text(ex.xmin, ex.ymax, "5/14", size=20)
+        >>>fig.savefig("img/hogehoge_heatmap.png")
+        >>>None
+        
+    """
+
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     ax.xaxis.set_visible(axis_visible)
     ax.yaxis.set_visible(axis_visible)
@@ -120,7 +161,39 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", "link"], draw_line=False, label_col=None, latlng_popup=True):
+def draw_folium(df,
+                id_col, val_col,
+                color_selector, zoom_start,
+                popups=["val", "link"],
+                draw_line=False, label_col=None,
+                latlng_popup=True):
+    """Heatmapの作成
+
+    foliumを用いてHeatmapを作成する
+
+    Args:
+        df (pandas.DataFrame): stay/moveをもとに作成したtable
+        id_col (str): idのcolumn名
+        val_col (str): valのcolumn名
+        color_selector (dsutils.colorutil.color_selector_tick): Heatmapの色の指定
+        zoom_start (int): default zoom level(1~20)
+        popips (list, optional): Matplotlibのfigsize
+        draw_line (, optional): 
+        label_col (, optional):
+        latlng_popup (, optional):
+
+    Returns:
+       folium.folium.Map: 作成したHeatmap
+
+    Examples:
+        >>>from dsutils import heatmap as hm, gif, timeutil as tu, colorutil as cu
+        >>>import pandas as pd
+        >>>df = pd.read_csv("/data/heatmap.csv")
+        >>>cs = cu.color_selector_tick(np.arange(100, 900, 100))
+        >>>folium_map = hm.draw_folium(df, "hoge_id", "cnt_uuid", cs, 13)
+        >>>folium_map
+        
+    """
     n = len(df)
     lats, lngs = 0, 0
     polys = {}
@@ -169,6 +242,26 @@ def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", 
 
 
 def extract_part(df, id_col, min_latlng, max_latlng):
+    """使用データの切り抜き
+    
+    切り抜き範囲を最小最大の緯度経度で設定
+
+    Args:
+        df (pandas.DataFrame): stay/moveをもとに作成したtable
+        id_col (str): idのcolumn名
+        min_latlng (tuple[int, int]): (min_lat, min_lng)
+        max_latlng (tuple[int, int]): (max_lat, max_lng)
+
+    Returns:
+        pandas.DataFrame: 加工後のdf
+
+    Examples:
+        >>>from dsutils import heatmap as hm, gif, timeutil as tu, colorutil as cu
+        >>>import pandas as pd
+        >>>df = pd.read_csv("/data/heatmap.csv")
+        >>>hm.extract_part(df, "hoge_id", (35.5, 139.5), (35.6, 139.6))
+        
+    """
     min_lat, min_lng = min_latlng
     max_lat, max_lng = max_latlng
 
@@ -179,8 +272,12 @@ def extract_part(df, id_col, min_latlng, max_latlng):
     return df.loc[v(df[id_col])]
 
 
-def drawp(df, poly_col, val_col, extent, color_selector,
-          figsize=(8, 8), dpi=100, width=600, alpha=0.8):
+def drawp(df,
+          poly_col, val_col,
+          extent, color_selector,
+          figsize=(8, 8),
+          dpi=100, width=600,
+          alpha=0.8):
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
