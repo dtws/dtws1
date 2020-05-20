@@ -12,7 +12,6 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     "colormath",
-    "cumplot",
     "folium",
     "geojson",
     "geopy",
