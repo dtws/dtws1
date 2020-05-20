@@ -19,6 +19,7 @@ requirements = [
     "matplotlib",
     "numpy",
     "pandas",
+    "pyproj",
     "tilemapbase"
 ]
 
