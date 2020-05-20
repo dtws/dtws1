@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-"""Tests for `dsutils` package."""
+"""Tests for `dtws1` package."""
 
 
 import unittest
 
-from dsutils import dsutils
+from dtws1 import dtws1
 
 
 class TestDsutils(unittest.TestCase):
-    """Tests for `dsutils` package."""
+    """Tests for `dtws1` package."""
 
     def setUp(self):
         """Set up test fixtures, if any."""

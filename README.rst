@@ -1,16 +1,16 @@
 =======
-dsutils
+dtws1
 =======
 
 
-.. image:: https://img.shields.io/pypi/v/dsutils.svg
-        :target: https://pypi.python.org/pypi/dsutils
+.. image:: https://img.shields.io/pypi/v/dtws1.svg
+        :target: https://pypi.python.org/pypi/dtws1
 
-.. image:: https://img.shields.io/travis/hotoku-dtws/dsutils.svg
-        :target: https://travis-ci.com/hotoku-dtws/dsutils
+.. image:: https://img.shields.io/travis/hotoku-dtws/dtws1.svg
+        :target: https://travis-ci.com/hotoku-dtws/dtws1
 
-.. image:: https://readthedocs.org/projects/dsutils/badge/?version=latest
-        :target: https://dsutils.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/dtws1/badge/?version=latest
+        :target: https://dtws1.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
 
@@ -20,7 +20,7 @@ tools for data science
 
 
 * Free software: MIT license
-* Documentation: https://dsutils.readthedocs.io.
+* Documentation: https://dtws1.readthedocs.io.
 
 
 Features

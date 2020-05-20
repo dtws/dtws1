@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=dsutils
+set SPHINXPROJ=dtws1
 
 if "%1" == "" goto help
 

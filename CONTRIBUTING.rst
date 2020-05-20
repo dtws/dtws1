@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/hotoku-dtws/dsutils/issues.
+Report bugs at https://github.com/hotoku-dtws/dtws1/issues.
 
 If you are reporting a bug, please include:
 
@@ -38,14 +38,14 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-dsutils could always use more documentation, whether as part of the
-official dsutils docs, in docstrings, or even on the web in blog posts,
+dtws1 could always use more documentation, whether as part of the
+official dtws1 docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/hotoku-dtws/dsutils/issues.
+The best way to send feedback is to file an issue at https://github.com/hotoku-dtws/dtws1/issues.
 
 If you are proposing a feature:
 
@@ -57,17 +57,17 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `dsutils` for local development.
+Ready to contribute? Here's how to set up `dtws1` for local development.
 
-1. Fork the `dsutils` repo on GitHub.
+1. Fork the `dtws1` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/dsutils.git
+    $ git clone git@github.com:your_name_here/dtws1.git
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv dsutils
-    $ cd dsutils/
+    $ mkvirtualenv dtws1
+    $ cd dtws1/
     $ python setup.py develop
 
 4. Create a branch for local development::
@@ -79,7 +79,7 @@ Ready to contribute? Here's how to set up `dsutils` for local development.
 5. When you're done making changes, check that your changes pass flake8 and the
    tests, including testing other Python versions with tox::
 
-    $ flake8 dsutils tests
+    $ flake8 dtws1 tests
     $ python setup.py test or pytest
     $ tox
 
@@ -103,7 +103,7 @@ Before you submit a pull request, check that it meets these guidelines:
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
 3. The pull request should work for Python 3.5, 3.6, 3.7 and 3.8, and for PyPy. Check
-   https://travis-ci.com/hotoku-dtws/dsutils/pull_requests
+   https://travis-ci.com/hotoku-dtws/dtws1/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
 Tips
@@ -112,7 +112,7 @@ Tips
 To run a subset of tests::
 
 
-    $ python -m unittest tests.test_dsutils
+    $ python -m unittest tests.test_dtws1
 
 Deploying
 ---------

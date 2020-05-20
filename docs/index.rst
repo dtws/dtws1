@@ -1,4 +1,4 @@
-Welcome to dsutils's documentation!
+Welcome to dtws1's documentation!
 ======================================
 
 .. toctree::

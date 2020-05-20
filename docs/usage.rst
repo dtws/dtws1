@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use dsutils in a project::
+To use dtws1 in a project::
 
-    import dsutils
+    import dtws1
