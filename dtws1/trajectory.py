@@ -4,7 +4,6 @@ import matplotlib.lines as lines
 import folium
 from .maputil import copyright_osm
 import numpy as np
-from geopy.distance import distance
 import re
 
 tmb.init(create=True)
