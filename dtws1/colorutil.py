@@ -31,7 +31,7 @@ class color_selector(ColorSelectorBase):
             self._cols = list(reversed(self._cols))
         m = max(min_value, min(values))
         M = min(max_value, max(values))
-        self._tick = np.linspace(m, M, self.n_cols+1)[1:-1]
+        self._tick = np.linspace(m, M, self._n_cols+1)[1:-1]
 
 
 class color_selector_tick(ColorSelectorBase):
