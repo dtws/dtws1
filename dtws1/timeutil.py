@@ -14,4 +14,4 @@ def end(dest=sys.stderr):
     if dest is None:
         return val
     else:
-        dest.write(f"elapsed: {val}")
+        dest.write(f"elapsed: {val}\n")
