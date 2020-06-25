@@ -190,7 +190,8 @@ def _draw_png(df,
     for i in range(n):
         x, y = ps[i]
         ax.plot(x, y, marker=".", markersize=p_size[i], color=p_color[i])
-
+    
+    fig.text(0.8875, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
 
@@ -198,7 +199,8 @@ def _draw_html(df,
                lats, lngs,
                p_size, p_color, p_popup,
                l_size, l_color, l_popup,
-               zoom_start=15, width=800, height=800):
+               zoom_start=15, width=800, height=800,
+               control_scale=True):
     n = len(df)
     mlat = np.mean(lats)
     mlng = np.mean(lngs)
@@ -206,8 +208,16 @@ def _draw_html(df,
         location=[mlat, mlng],
         attr=copyright_osm,
         width=width, height=height,
-        zoom_start=zoom_start
+        zoom_start=zoom_start,
+        control_scale=control_scale
     )
+    copyright = ' <a href="https://www.datawise.co.jp/">  | © DATAWISE   </a>,' 
+    folium.raster_layers.TileLayer(
+      tiles='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      name='OpenStreetMap2',
+      attr=copyright,
+      overlay=True
+    ).add_to(fmap)
 
     for i in range(n):
         x, y = lngs[i], lats[i]

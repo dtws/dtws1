@@ -116,11 +116,12 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
-
+    
+    fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", "link"], draw_line=False, label_col=None, latlng_popup=True):
+def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", "link"], draw_line=False, label_col=None, latlng_popup=True, control_scale=True):
     n = len(df)
     lats, lngs = 0, 0
     polys = {}
@@ -159,8 +160,16 @@ def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", 
     lat, lng = lats/(6*n), lngs/(6*n)
     fmap = folium.Map(
         location=[lat, lng],
-        zoom_start=zoom_start
+        zoom_start=zoom_start,
+        control_scale=control_scale
     )
+    copyright = ' <a href="https://www.datawise.co.jp/">  | © DATAWISE   </a>,' 
+    folium.raster_layers.TileLayer(
+      tiles='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      name='OpenStreetMap2',
+      attr=copyright,
+      overlay=True
+    ).add_to(fmap)
     for k, v in polys.items():
         v.add_to(fmap)
     if latlng_popup:
@@ -198,6 +207,7 @@ def drawp(df, poly_col, val_col, extent, color_selector,
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
 
+    fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
 
