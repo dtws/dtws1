@@ -138,10 +138,10 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         control_scale : bool
             縮尺を表示するかどうか
         bins : list
-            coroplethの境界値。valueの最大値よりbinの最大値以上の必要があるので注意
+            choroplethの境界値。valueの最大値よりbinの最大値以上の必要があるので注意
             max(df[val_col]) <= bins[-1]
         fill_color : str
-            coroplethの色。以下から選択可能
+            choroplethの色。以下から選択可能
                 ‘BuGn’, ‘BuPu’, ‘GnBu’, ‘OrRd’, ‘PuBu’, ‘PuBuGn’, ‘PuRd’, ‘RdPu’, ‘YlGn’, ‘YlGnBu’, ‘YlOrBr’, ‘YlOrRd’
     """
     location = [sum([h3.h3_to_geo(df.h3_10_id[i])[0] for i in range(len(df))]) / len(df), sum([h3.h3_to_geo(df.h3_10_id[i])[1] for i in range(len(df))]) / len(df)]
