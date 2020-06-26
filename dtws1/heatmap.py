@@ -189,7 +189,7 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         data=df,  # DataFrameまたはSeriesを指定
         columns=[id_col, val_col],  # 行政区分コードと表示データ
         key_on='feature.id',  # GeoJSONのキー（行政区分コード）
-        fill_color='YlGn',  # 色パレットを指定（※）
+        fill_color=fill_color,  # 色パレットを指定（※）
         bins=bins, # 境界値を指定
         fill_opacity=0.7,  # 透明度（色塗り）
         line_opacity=0.2,  # 透明度（境界） 
