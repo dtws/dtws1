@@ -7,7 +7,7 @@ import tilemapbase as tmb
 import folium
 from collections import namedtuple
 import geojson as gj
-
+import json
 
 def _flatten(lss):
     return ft.reduce(lambda x, y: x+y, lss)
@@ -121,48 +121,36 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", "link"], draw_line=False, label_col=None, latlng_popup=True, control_scale=True):
-    n = len(df)
-    lats, lngs = 0, 0
-    polys = {}
-    for i in range(n):
-        id = df[id_col].iloc[i]
-        val = df[val_col].iloc[i]
-        color = color_selector(val)
-        vts = h3.h3_to_geo_boundary(id)
-        for v in vts:
-            lats += v[0]
-            lngs += v[1]
-        polys[i] = folium.Polygon(
-            locations=vts,
-            color="#080016",
-            fill=True,
-            fill_color=color,
-            fill_opacity=0.8,
-            weight=0.3 if draw_line else 0
-        )
-        pop = []
-        if "val" in popups:
-            pop.append(val)
-        if "link" in popups:
-            pos = h3.h3_to_geo(id)
-            pop.append(
-                f'<a href="https://www.google.com/maps/search/{pos[0]},+{pos[1]}">link</a>')
-        if "h3" in popups:
-            pop.append(id)
-        if "latlng" in popups:
-            pos = h3.h3_to_geo(id)
-            pop.append(pos)
-        if label_col is not None:
-            pop.append(df[label_col].iloc[i])
-        if len(pop) > 0:
-            polys[i].add_child(folium.Popup("\n".join(map(str, pop))))
-    lat, lng = lats/(6*n), lngs/(6*n)
+def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn'):
+    """
+        ヒートマップを描画する
+
+        Attributes
+        ----------
+        df : pandas.core.frame.DataFrame
+            対象のデータフレーム
+        id_col : str
+            表示するデータのidのcolumn名
+        val_col : str
+            表示するデータのvalueのcloumn名
+        zoom_start : int
+            foliumのズームの初期位置
+        control_scale : bool
+            縮尺を表示するかどうか
+        bins : list
+            coroplethの境界値。valueの最大値よりbinの最大値以上の必要があるので注意
+            max(df[val_col]) <= bins[-1]
+        fill_color : str
+            coroplethの色。以下から選択可能
+                ‘BuGn’, ‘BuPu’, ‘GnBu’, ‘OrRd’, ‘PuBu’, ‘PuBuGn’, ‘PuRd’, ‘RdPu’, ‘YlGn’, ‘YlGnBu’, ‘YlOrBr’, ‘YlOrRd’
+    """
+    location = [sum([h3.h3_to_geo(df.h3_10_id[i])[0] for i in range(len(df))]) / len(df), sum([h3.h3_to_geo(df.h3_10_id[i])[1] for i in range(len(df))]) / len(df)]
     fmap = folium.Map(
-        location=[lat, lng],
+        location=location,
         zoom_start=zoom_start,
         control_scale=control_scale
     )
+    
     copyright = ' <a href="https://www.datawise.co.jp/">  | © DATAWISE   </a>,' 
     folium.raster_layers.TileLayer(
       tiles='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -170,10 +158,45 @@ def draw_folium(df, id_col, val_col, color_selector, zoom_start, popups=["val", 
       attr=copyright,
       overlay=True
     ).add_to(fmap)
-    for k, v in polys.items():
-        v.add_to(fmap)
-    if latlng_popup:
-        folium.LatLngPopup().add_to(fmap)
+    
+    df[id_col] = df[id_col].astype('str')
+    geojson = {
+        "type": "FeatureCollection",
+        "features": []
+    }
+    
+    for i in range(len(df)):
+        tpl = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": []
+            }
+        }
+        geo = h3.h3_to_geo_boundary(df.h3_10_id[i])
+        for j in range(len(geo)):
+            geo[j][0], geo[j][1] = geo[j][1], geo[j][0] 
+        tpl["geometry"]["coordinates"].append(geo)
+        tpl["id"] = str(df[id_col][i])
+        geojson["features"].append(tpl)
+    geojson = json.dumps(geojson)
+    if bins is None:
+        max_ = df.sort_values(val_col, ascending=False).reset_index()[val_col][0]
+        bins = [max_/5*i for i in range(6)]
+    folium.Choropleth(
+        geojson,   # GeoJSONデータ
+        name='choropleth',
+        data=df,  # DataFrameまたはSeriesを指定
+        columns=[id_col, val_col],  # 行政区分コードと表示データ
+        key_on='feature.id',  # GeoJSONのキー（行政区分コード）
+        fill_color='YlGn',  # 色パレットを指定（※）
+        bins=bins, # 境界値を指定
+        fill_opacity=0.7,  # 透明度（色塗り）
+        line_opacity=0.2,  # 透明度（境界） 
+        legend_name=val_col,  # 凡例表示名
+        highlight=True
+    ).add_to(fmap)
+
     return fmap
 
 
