@@ -121,7 +121,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn'):
+def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', title=None):
     """
         ヒートマップを描画する
 
@@ -143,6 +143,8 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         fill_color : str
             choroplethの色。以下から選択可能
                 ‘BuGn’, ‘BuPu’, ‘GnBu’, ‘OrRd’, ‘PuBu’, ‘PuBuGn’, ‘PuRd’, ‘RdPu’, ‘YlGn’, ‘YlGnBu’, ‘YlOrBr’, ‘YlOrRd’
+        title : str
+            legend title
     """
     location = [sum([h3.h3_to_geo(df.h3_10_id[i])[0] for i in range(len(df))]) / len(df), sum([h3.h3_to_geo(df.h3_10_id[i])[1] for i in range(len(df))]) / len(df)]
     fmap = folium.Map(
@@ -182,7 +184,9 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
     geojson = json.dumps(geojson)
     if bins is None:
         max_ = df.sort_values(val_col, ascending=False).reset_index()[val_col][0]
-        bins = [max_/5*i for i in range(6)]
+        bins = [max_ / 5 * i for i in range(6)]
+    if title is None:
+        title = val_col
     folium.Choropleth(
         geojson,   # GeoJSONデータ
         name='choropleth',
@@ -193,7 +197,7 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         bins=bins, # 境界値を指定
         fill_opacity=0.7,  # 透明度（色塗り）
         line_opacity=0.2,  # 透明度（境界） 
-        legend_name=val_col,  # 凡例表示名
+        legend_name=title,  # 凡例表示名
         highlight=True
     ).add_to(fmap)
 
