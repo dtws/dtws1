@@ -9,8 +9,9 @@ from collections import namedtuple
 import geojson as gj
 import json
 
+
 def _flatten(lss):
-    return ft.reduce(lambda x, y: x+y, lss)
+    return ft.reduce(lambda x, y: x + y, lss)
 
 
 def _swap(ls):
@@ -65,11 +66,11 @@ def n_extent(ids, n):
     lat_width = (extent_.max_lat - extent_.min_lat) / n
     lng_ticks = [
         extent_.min_lng + i * lng_width
-        for i in range(n+1)
+        for i in range(n + 1)
     ]
     lat_ticks = [
         extent_.min_lat + i * lat_width
-        for i in range(n+1)
+        for i in range(n + 1)
     ]
     MinMax = namedtuple("MinMax", "min max")
     lng_bounds = map(lambda x: MinMax(*x), zip(lng_ticks[:-1], lng_ticks[1:]))
@@ -90,7 +91,7 @@ def n_extent(ids, n):
         ypos = int((lat - extent_.min_lat) // lat_width)
         # import pdb
         # pdb.set_trace()
-        return n*xpos + ypos
+        return n * xpos + ypos
     search_position_v = np.vectorize(search_position)
     positions = search_position_v(ids)
 
@@ -116,7 +117,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
-    
+
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
@@ -146,27 +147,27 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         title : str
             legend title
     """
-    location = [sum([h3.h3_to_geo(df.h3_10_id[i])[0] for i in range(len(df))]) / len(df), sum([h3.h3_to_geo(df.h3_10_id[i])[1] for i in range(len(df))]) / len(df)]
+    location = [sum([h3.h3_to_geo(df[id_col][i])[0] for i in range(len(df))]) / len(df), sum([h3.h3_to_geo(df[id_col][i])[1] for i in range(len(df))]) / len(df)]
     fmap = folium.Map(
         location=location,
         zoom_start=zoom_start,
         control_scale=control_scale
     )
-    
-    copyright = ' <a href="https://www.datawise.co.jp/">  | © DATAWISE   </a>,' 
+
+    copyright = ' <a href="https://www.datawise.co.jp/">  | © DATAWISE   </a>,'
     folium.raster_layers.TileLayer(
-      tiles='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      name='OpenStreetMap2',
-      attr=copyright,
-      overlay=True
+        tiles='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        name='OpenStreetMap2',
+        attr=copyright,
+        overlay=True
     ).add_to(fmap)
-    
+
     df[id_col] = df[id_col].astype('str')
     geojson = {
         "type": "FeatureCollection",
         "features": []
     }
-    
+
     for i in range(len(df)):
         tpl = {
             "type": "Feature",
@@ -175,9 +176,9 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
                 "coordinates": []
             }
         }
-        geo = h3.h3_to_geo_boundary(df.h3_10_id[i])
+        geo = h3.h3_to_geo_boundary(df[id_col][i])
         for j in range(len(geo)):
-            geo[j][0], geo[j][1] = geo[j][1], geo[j][0] 
+            geo[j][0], geo[j][1] = geo[j][1], geo[j][0]
         tpl["geometry"]["coordinates"].append(geo)
         tpl["id"] = str(df[id_col][i])
         geojson["features"].append(tpl)
@@ -194,9 +195,9 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         columns=[id_col, val_col],  # 行政区分コードと表示データ
         key_on='feature.id',  # GeoJSONのキー（行政区分コード）
         fill_color=fill_color,  # 色パレットを指定（※）
-        bins=bins, # 境界値を指定
+        bins=bins,  # 境界値を指定
         fill_opacity=0.7,  # 透明度（色塗り）
-        line_opacity=0.2,  # 透明度（境界） 
+        line_opacity=0.2,  # 透明度（境界）
         legend_name=title,  # 凡例表示名
         highlight=True
     ).add_to(fmap)
