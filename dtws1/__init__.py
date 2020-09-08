@@ -2,7 +2,7 @@
 
 __author__ = """Yasunori Horikoshi"""
 __email__ = 'yasunori_horikoshi@datawise.co.jp'
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 
 
 from dtws1.plotutil import cumplot
