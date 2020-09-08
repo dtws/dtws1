@@ -122,7 +122,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', title=None):
+def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', title=None, **kwargs):
     """
         ヒートマップを描画する
 
@@ -199,7 +199,8 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         fill_opacity=0.7,  # 透明度（色塗り）
         line_opacity=0.2,  # 透明度（境界）
         legend_name=title,  # 凡例表示名
-        highlight=True
+        highlight=True,
+        **kwargs
     ).add_to(fmap)
 
     return fmap
