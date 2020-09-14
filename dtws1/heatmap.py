@@ -122,7 +122,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', title=None, **kwargs):
+def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', fill_opacity=0.7, line_opacity=0.2, title=None):
     """
         ヒートマップを描画する
 
@@ -147,7 +147,8 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         title : str
             legend title
     """
-    location = [sum([h3.h3_to_geo(df[id_col][i])[0] for i in range(len(df))]) / len(df), sum([h3.h3_to_geo(df[id_col][i])[1] for i in range(len(df))]) / len(df)]
+    df["h3_lng"],df["h3_lat"] = zip(*df[id_col].apply(lambda x: h3.h3_to_geo(x)))
+    location = [df["h3_lng"].mean(),df["h3_lat"].mean()]
     fmap = folium.Map(
         location=location,
         zoom_start=zoom_start,
@@ -168,20 +169,22 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         "features": []
     }
 
-    for i in range(len(df)):
+    df["h3_boundary"] = df[id_col].apply(lambda x : tuple((lat, lng) for lng,lat in h3.h3_to_geo_boundary(x)))
+
+    def _process_tpl(id_col,h3_boundary):
         tpl = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": []
-            }
+        "type": "Feature",
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": []
         }
-        geo = h3.h3_to_geo_boundary(df[id_col][i])
-        for j in range(len(geo)):
-            geo[j][0], geo[j][1] = geo[j][1], geo[j][0]
-        tpl["geometry"]["coordinates"].append(geo)
-        tpl["id"] = str(df[id_col][i])
-        geojson["features"].append(tpl)
+    }     
+        tpl["geometry"]["coordinates"].append(h3_boundary)
+        tpl["id"] = id_col   
+        return tpl
+
+    df["tpl"] = df[[id_col,"h3_boundary"]].apply(lambda x: _process_tpl(x[0],x[1]), axis=1)
+    geojson["features"].extend(df["tpl"])
     geojson = json.dumps(geojson)
     if bins is None:
         max_ = df.sort_values(val_col, ascending=False).reset_index()[val_col][0]
@@ -196,11 +199,10 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         key_on='feature.id',  # GeoJSONのキー（行政区分コード）
         fill_color=fill_color,  # 色パレットを指定（※）
         bins=bins,  # 境界値を指定
-        fill_opacity=0.7,  # 透明度（色塗り）
-        line_opacity=0.2,  # 透明度（境界）
+        fill_opacity=fill_opacity,  # 透明度（色塗り）
+        line_opacity=line_opacity,  # 透明度（境界）
         legend_name=title,  # 凡例表示名
         highlight=True,
-        **kwargs
     ).add_to(fmap)
 
     return fmap
