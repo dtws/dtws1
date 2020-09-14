@@ -122,7 +122,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     return fig, ax
 
 
-def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', fill_opacity=0.7, line_opacity=0.2, title=None):
+def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=None, fill_color='YlGn', fill_opacity=0.7, line_opacity=0.2, title=None, **kwargs):
     """
         ヒートマップを描画する
 
@@ -144,6 +144,10 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         fill_color : str
             choroplethの色。以下から選択可能
                 ‘BuGn’, ‘BuPu’, ‘GnBu’, ‘OrRd’, ‘PuBu’, ‘PuBuGn’, ‘PuRd’, ‘RdPu’, ‘YlGn’, ‘YlGnBu’, ‘YlOrBr’, ‘YlOrRd’
+        fill_opacity : float
+            [0,1], 透明度（色塗り）
+        line_opacity : float
+            [0,1], 透明度（境界）
         title : str
             legend title
     """
@@ -170,7 +174,6 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
     }
 
     df["h3_boundary"] = df[id_col].apply(lambda x : tuple((lat, lng) for lng,lat in h3.h3_to_geo_boundary(x)))
-
     def _process_tpl(id_col,h3_boundary):
         tpl = {
         "type": "Feature",
@@ -203,6 +206,7 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         line_opacity=line_opacity,  # 透明度（境界）
         legend_name=title,  # 凡例表示名
         highlight=True,
+        **kwargs
     ).add_to(fmap)
 
     return fmap
