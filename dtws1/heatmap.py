@@ -178,12 +178,12 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
     
     def _process_tpl(id_col,h3_boundary):
         tpl = {
-        "type": "Feature",
-        "geometry": {
-            "type": "Polygon",
-            "coordinates": []
-        }
-    }     
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": []
+            }
+        }     
         tpl["geometry"]["coordinates"].append(h3_boundary)
         tpl["id"] = id_col   
         return tpl
