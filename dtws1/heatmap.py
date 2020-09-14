@@ -152,7 +152,7 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
             legend title
     """
     df["h3_lng"],df["h3_lat"] = zip(*df[id_col].apply(lambda x: h3.h3_to_geo(x)))
-    location = [df["h3_lng"].mean(),df["h3_lat"].mean()]
+    location = [df["h3_lng"].mean(),df["h3_lat"].mean()] #[lat,lng]
     fmap = folium.Map(
         location=location,
         zoom_start=zoom_start,
@@ -173,7 +173,7 @@ def draw_folium(df, id_col, val_col, zoom_start=13, control_scale=True, bins=Non
         "features": []
     }
 
-    df["h3_boundary"] = df[id_col].apply(lambda x : tuple((lat, lng) for lng,lat in h3.h3_to_geo_boundary(x)))
+    df["h3_boundary"] = df[id_col].apply(lambda x : tuple((lat, lng) for lng,lat in h3.h3_to_geo_boundary(x))) # Switching lat, lng position because h3.h3_to_geo_boundary has a reverted output.
     def _process_tpl(id_col,h3_boundary):
         tpl = {
         "type": "Feature",
