@@ -10,6 +10,7 @@ from collections import namedtuple
 from .colorutil import color_selector_p
 import geojson as gj
 import json
+from PIL import Image
 
 
 def _flatten(lss):
@@ -260,6 +261,10 @@ def drawp(df, poly_col, val_col, extent, color_selector,
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
+
+def draw_gif_from_images(files, save_to, duration=100, loop=0):
+    images = list(map(lambda file: Image.open(file), files))
+    images[0].save(save_to, save_all=True, append_images=images[1:], duration=duration, loop=loop)
 
 def extentp(polys):
     vts = _flatten([gj.loads(p)["coordinates"][0] for p in polys])
