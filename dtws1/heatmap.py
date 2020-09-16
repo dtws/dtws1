@@ -1,5 +1,6 @@
 import itertools as it
 import matplotlib.pyplot as plt
+from matplotlib import cm, colors
 from h3 import h3
 import numpy as np
 import functools as ft
@@ -117,6 +118,14 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
+
+    # cmap = plt.get_cmap('jet',10)
+    cpool = color_selector._cols
+    cmap = colors.ListedColormap(cpool,'indexed') # custom colormap https://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(min(df[val_col]),max(df[val_col])))
+    cbaxes = fig.add_axes([0.55, 0.83, 0.3, 0.03]) # Positioning colorbar https://stackoverflow.com/questions/13310594/positioning-the-colorbar
+    print(np.linspace(min(df[val_col]),max(df[val_col]),len(cpool)))
+    fig.colorbar(sm, cax=cbaxes, orientation='horizontal')
 
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
@@ -244,7 +253,7 @@ def drawp(df, poly_col, val_col, extent, color_selector,
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
-
+    
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
