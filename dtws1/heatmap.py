@@ -7,6 +7,7 @@ import functools as ft
 import tilemapbase as tmb
 import folium
 from collections import namedtuple
+from .colorutil import color_selector_p
 import geojson as gj
 import json
 
@@ -99,10 +100,10 @@ def n_extent(ids, n):
     Return = namedtuple("Return", "extents positions")
     return Return(extents, positions)
 
-def add_color_bar(df, val_col, fig, color_selector, cbaxes_dimension=[0.55, 0.83, 0.3, 0.03], percentile=False, orientation='horizontal'):
+def add_color_bar(df, val_col, fig, color_selector, cbaxes_dimension=[0.55, 0.83, 0.3, 0.03],  orientation='horizontal'):
     cpool = color_selector._cols
     cmap = colors.ListedColormap(cpool,'indexed') # custom colormap https://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
-    norm = colors.BoundaryNorm(np.percentile(df[val_col], np.linspace(0,100,len(cpool)+1)),len(cpool)+1) if percentile else colors.Normalize(min(df[val_col]),max(df[val_col]))
+    norm = colors.BoundaryNorm(np.percentile(df[val_col], np.linspace(0,100,len(cpool)+1)),len(cpool)+1) if isinstance(color_selector, color_selector_p) else colors.Normalize(min(df[val_col]),max(df[val_col]))
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     cbaxes = fig.add_axes(cbaxes_dimension) # Positioning colorbar https://stackoverflow.com/questions/13310594/positioning-the-colorbar
     cbar = fig.colorbar(sm, cax=cbaxes, orientation=orientation)
