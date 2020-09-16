@@ -11,7 +11,8 @@ from .colorutil import color_selector_p
 import geojson as gj
 import json
 from PIL import Image
-
+import tempfile
+import uuid
 
 def _flatten(lss):
     return ft.reduce(lambda x, y: x + y, lss)
@@ -262,9 +263,16 @@ def drawp(df, poly_col, val_col, extent, color_selector,
     return fig, ax
 
 
-def draw_gif_from_images(files, save_to, duration=100, loop=0):
-    images = list(map(lambda file: Image.open(file), files))
-    images[0].save(save_to, save_all=True, append_images=images[1:], duration=duration, loop=loop)
+def draw_gif_from_images(draw_function, draw_function_params, save_to, duration=100, loop=0):
+    figures = list(map(lambda params: draw_function(**params), draw_function_params))
+    def _save_and_read(fig,dest):
+        fig[0].savefig(dest)
+        im = Image.open(dest)
+        return im
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        images = list(map(lambda fig: _save_and_read(fig, f'{temp_dir}/{str(uuid.uuid4())}.png'), figures))
+        images[0].save(save_to, save_all=True, append_images=images[1:], duration=duration, loop=loop)
 
 def extentp(polys):
     vts = _flatten([gj.loads(p)["coordinates"][0] for p in polys])
