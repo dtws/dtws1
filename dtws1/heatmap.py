@@ -1,11 +1,13 @@
 import itertools as it
 import matplotlib.pyplot as plt
+from matplotlib import cm, colors
 from h3 import h3
 import numpy as np
 import functools as ft
 import tilemapbase as tmb
 import folium
 from collections import namedtuple
+from .colorutil import color_selector_p
 import geojson as gj
 import json
 
@@ -98,8 +100,16 @@ def n_extent(ids, n):
     Return = namedtuple("Return", "extents positions")
     return Return(extents, positions)
 
+def add_color_bar(df, val_col, fig, color_selector, cbaxes_dimension=[0.55, 0.83, 0.3, 0.03],  orientation='horizontal'):
+    cpool = color_selector._cols
+    cmap = colors.ListedColormap(cpool,'indexed') # custom colormap https://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
+    norm = colors.BoundaryNorm(np.percentile(df[val_col], np.linspace(0,100,len(cpool)+1)),len(cpool)+1) if isinstance(color_selector, color_selector_p) else colors.Normalize(min(df[val_col]),max(df[val_col]))
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    cbaxes = fig.add_axes(cbaxes_dimension) # Positioning colorbar https://stackoverflow.com/questions/13310594/positioning-the-colorbar
+    cbar = fig.colorbar(sm, cax=cbaxes, orientation=orientation)
+    cbar.set_label(val_col)
 
-def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False):
+def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False, **kwargs):
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     ax.xaxis.set_visible(axis_visible)
     ax.yaxis.set_visible(axis_visible)
@@ -117,6 +127,8 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
+
+    add_color_bar(df, val_col, fig, color_selector, **kwargs)
 
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
@@ -244,7 +256,7 @@ def drawp(df, poly_col, val_col, extent, color_selector,
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
-
+    
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
 
