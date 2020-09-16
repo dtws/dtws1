@@ -99,8 +99,16 @@ def n_extent(ids, n):
     Return = namedtuple("Return", "extents positions")
     return Return(extents, positions)
 
+def add_color_bar(df, val_col, fig, color_selector, cbaxes_dimension=[0.55, 0.83, 0.3, 0.03], percentile=False, orientation='horizontal'):
+    cpool = color_selector._cols
+    cmap = colors.ListedColormap(cpool,'indexed') # custom colormap https://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
+    norm = colors.BoundaryNorm(np.percentile(df[val_col], np.linspace(0,100,len(cpool)+1)),len(cpool)+1) if percentile else colors.Normalize(min(df[val_col]),max(df[val_col]))
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    cbaxes = fig.add_axes(cbaxes_dimension) # Positioning colorbar https://stackoverflow.com/questions/13310594/positioning-the-colorbar
+    cbar = fig.colorbar(sm, cax=cbaxes, orientation=orientation)
+    cbar.set_label(val_col)
 
-def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False):
+def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False, **kwargs):
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     ax.xaxis.set_visible(axis_visible)
     ax.yaxis.set_visible(axis_visible)
@@ -119,13 +127,7 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
 
-    # cmap = plt.get_cmap('jet',10)
-    cpool = color_selector._cols
-    cmap = colors.ListedColormap(cpool,'indexed') # custom colormap https://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(min(df[val_col]),max(df[val_col])))
-    cbaxes = fig.add_axes([0.55, 0.83, 0.3, 0.03]) # Positioning colorbar https://stackoverflow.com/questions/13310594/positioning-the-colorbar
-    print(np.linspace(min(df[val_col]),max(df[val_col]),len(cpool)))
-    fig.colorbar(sm, cax=cbaxes, orientation='horizontal')
+    add_color_bar(df, val_col, fig, color_selector, **kwargs)
 
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
