@@ -108,8 +108,8 @@ def add_color_bar(df, val_col, fig, color_selector, cbaxes_dimension=[0.55, 0.83
     norm = colors.BoundaryNorm(np.percentile(df[val_col], np.linspace(0,100,len(cpool)+1)),len(cpool)+1) if isinstance(color_selector, color_selector_p) else colors.Normalize(min(df[val_col]),max(df[val_col]))
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     cbaxes = fig.add_axes(cbaxes_dimension) # Positioning colorbar https://stackoverflow.com/questions/13310594/positioning-the-colorbar
-    cbar = fig.colorbar(sm, cax=cbaxes, orientation=orientation)
-    cbar.set_label(val_col)
+    cbar = fig.colorbar(sm, cax=cbaxes, ticks=np.arange(min(df[val_col]),max(df[val_col])+1), spacing='uniform', orientation=orientation)
+    cbar.set_ticks(np.arange(min(df[val_col]),max(df[val_col])+1))
 
 def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, width=600, alpha=0.8, axis_visible=False, **kwargs):
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
@@ -120,6 +120,8 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
     plotter = tmb.Plotter(extent, t, width=width)
     plotter.plot(ax, t)
 
+    add_color_bar(df, val_col, fig, color_selector, **kwargs)
+
     n = len(df)
     for i in range(n):
         id = df[id_col].iloc[i]
@@ -129,8 +131,6 @@ def draw(df, id_col, val_col, extent, color_selector, figsize=(8, 8), dpi=100, w
         xys = [tmb.project(*x) for x in vts]
         poly = plt.Polygon(xys, fc=color, alpha=alpha)
         ax.add_patch(poly)
-
-    add_color_bar(df, val_col, fig, color_selector, **kwargs)
 
     fig.text(0.86, 0.125, '© DATAWISE', va='bottom', ha='right')
     return fig, ax
@@ -264,13 +264,27 @@ def drawp(df, poly_col, val_col, extent, color_selector,
 
 
 def draw_gif_from_images(draw_function, draw_function_params, save_to, duration=100, loop=0):
-    figures = list(map(lambda params: draw_function(**params), draw_function_params))
-    def _save_and_read(fig,dest):
-        fig[0].savefig(dest)
-        im = Image.open(dest)
-        return im
+    """ 
+        Attributes
+        ----------
+        draw_function : function
+            A previously defined map drawing function. Available: draw, drawp.
+        draw_function_params : a list of dictionary
+            A list of paramaters in the form of dictionary. The content of the dictionary depends on the function being used.
+        save_to : str
+            A saving destination for the output GIF image.
+        duration : int
+            The time interval between each frame.
+        loop : int
+        The number of times that the output GIF image will replay. 0 stands for an infinite loop.
+    """
+    images = []
     with tempfile.TemporaryDirectory() as temp_dir:
-        images = list(map(lambda fig: _save_and_read(fig, f'{temp_dir}/{str(uuid.uuid4())}.png'), figures))
+        for param in draw_function_params:
+                dest = f'{temp_dir}/{str(uuid.uuid4())}.png'
+                fig = draw_function(**param)
+                fig[0].savefig(dest)
+                images.append(Image.open(dest))
         images[0].save(save_to, save_all=True, append_images=images[1:], duration=duration, loop=loop)
 
 def extentp(polys):
