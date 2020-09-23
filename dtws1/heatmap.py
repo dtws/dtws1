@@ -269,7 +269,6 @@ def draw_gif_from_images(draw_function, draw_function_params, save_to, duration=
         fig[0].savefig(dest)
         im = Image.open(dest)
         return im
-
     with tempfile.TemporaryDirectory() as temp_dir:
         images = list(map(lambda fig: _save_and_read(fig, f'{temp_dir}/{str(uuid.uuid4())}.png'), figures))
         images[0].save(save_to, save_all=True, append_images=images[1:], duration=duration, loop=loop)
