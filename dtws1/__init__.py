@@ -6,3 +6,5 @@ __version__ = '0.4.0'
 
 
 from dtws1.plotutil import cumplot
+from dtws1 import heatmap
+from dtws1 import colorutil
